@@ -37,6 +37,8 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.POST, "/resetpassword").permitAll()
             .requestMatchers(HttpMethod.GET, "/error").permitAll()
             .requestMatchers("/admin/**").hasRole("ADMIN") //procura por permissão com ROLE_ADMIN
+            .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER", "ADMIN") //qualquer logado pode ler a API
+            .requestMatchers(HttpMethod.POST, "/api/users/**").hasRole("ADMIN") //só admin escreve na API
             .anyRequest().authenticated()) //se não foi citado acima, só entra com login feito
             .formLogin(form -> form
                 .loginPage("/login")
