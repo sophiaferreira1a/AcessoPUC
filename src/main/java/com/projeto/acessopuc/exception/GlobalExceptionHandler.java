@@ -3,6 +3,7 @@ package com.projeto.acessopuc.exception;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -15,6 +16,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> requisicaoInvalida(IllegalArgumentException ex) {
         return Map.of("message", ex.getMessage());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> jsonInvalido(HttpMessageNotReadableException ex) {
+        return Map.of("message", "JSON inválido");
     }
 
     @ExceptionHandler(AccessDeniedException.class)
