@@ -48,8 +48,8 @@ public class AcessoController {
 
     @GetMapping("/resetpassword")
     public String resetPassword(@RequestParam("token") String token, Model model) {
-    model.addAttribute("token", token);   // entrega pro formulário reenviar escondido
-    return "resetpassword";
+        model.addAttribute("token", token);   // entrega pro formulário reenviar escondido
+        return "resetpassword";
     }
     
     //processam formulários
@@ -65,7 +65,15 @@ public class AcessoController {
     }
 
     @PostMapping("/resetpassword")
-    public String handleReset(@RequestParam("token") String token, @RequestParam("senha") String senha, @RequestParam("confirmarSenha") String confirmarSenha) {
+    public String handleReset(
+            @RequestParam("token") String token,
+            @RequestParam("senha") String senha,
+            @RequestParam("confirmarSenha") String confirmarSenha) {
+
+        if (!senha.equals(confirmarSenha)) {
+            return "redirect:/resetpassword?token=" + token + "&erro=senhas";
+        }
+
         return "redirect:/login?senha=alterada";
     }
     
