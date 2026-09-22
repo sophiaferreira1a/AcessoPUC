@@ -11,26 +11,26 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.projeto.acessopuc.model.Usuario;
-import com.projeto.acessopuc.service.UserService;
+import com.projeto.acessopuc.service.ApiUserService;
 
 @RestController
 @RequestMapping("/api/users")
 public class ApiUserController {
 
-    private final UserService userService;
+    private final ApiUserService apiUserService;
 
-    public ApiUserController(UserService userService) {
-        this.userService = userService;
+    public ApiUserController(ApiUserService apiUserService) {
+        this.apiUserService = apiUserService;
     }
 
     @GetMapping
     public List<Usuario> listar() {
-        return userService.listar();
+        return apiUserService.listar();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Usuario criar(@RequestBody Usuario usuario) {
-        return userService.adicionar(usuario);
+        return apiUserService.adicionar(usuario);
     }
 }

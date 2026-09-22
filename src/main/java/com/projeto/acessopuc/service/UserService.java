@@ -1,30 +1,149 @@
 package com.projeto.acessopuc.service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.stereotype.Service;
 
-import com.projeto.acessopuc.model.Usuario;
+import com.projeto.acessopuc.config.UserConfig;
 
 @Service
 public class UserService {
 
-    private final List<Usuario> usuarios = new ArrayList<>();
-    private long proximoId = 1;
+    private final InMemoryUserDetailsManager userDetailsManager;
+    private final PasswordEncoder passwordEncoder;
 
-    public List<Usuario> listar() {
-        return new ArrayList<>(usuarios);
+    /*
+     * ============================================================
+     * NOMES DOS USUÁRIOS
+     * ============================================================
+     *
+     * Guarda o nome associado ao e-mail/usuário.
+     *
+     * Exemplo:
+     *
+     * sophiaferreira1a -> Sophia
+     * profaramuni -> Administrador
+     *
+     */
+
+    private final Map<String, String> userNames = new HashMap<>();
+
+    /*
+     * ============================================================
+     * CONSTRUTOR
+     * ============================================================
+     */
+
+    public UserService(
+            InMemoryUserDetailsManager userDetailsManager,
+            PasswordEncoder passwordEncoder,
+            UserConfig userConfig) {
+
+        this.userDetailsManager = userDetailsManager;
+        this.passwordEncoder = passwordEncoder;
+
+        /*
+         * Registra os nomes dos usuários pré-configurados.
+         */
+        userNames.put(
+                userConfig.getUserUsername(),
+                userConfig.getUserName());
+
+        userNames.put(
+                userConfig.getAdminUsername(),
+                userConfig.getAdminName());
     }
 
-    public Usuario adicionar(Usuario usuario) {
-        if (usuario.getNome() == null || usuario.getNome().isBlank()
-                || usuario.getEmail() == null || usuario.getEmail().isBlank()) {
-            throw new IllegalArgumentException("Nome e e-mail são obrigatórios");
-        }
+    /*
+     * ============================================================
+     * CRIAR USUÁRIO
+     * ============================================================
+     */
 
-        usuario.setId(proximoId++);
-        usuarios.add(usuario);
-        return usuario;
+    public void createUser(
+            String email,
+            String senha,
+            String nome) {
+
+        /*
+         * Cria o usuário do Spring Security.
+         */
+        UserDetails user = User.builder()
+                .username(email)
+                .password(
+                        passwordEncoder.encode(senha))
+                .roles("USER")
+                .build();
+
+        /*
+         * Salva o usuário em memória.
+         */
+        userDetailsManager.createUser(user);
+
+        /*
+         * Salva o nome associado ao e-mail.
+         */
+        userNames.put(email, nome);
+    }
+
+    /*
+     * ============================================================
+     * VERIFICAR SE USUÁRIO EXISTE
+     * ============================================================
+     */
+
+    public boolean exists(String email) {
+
+        return userDetailsManager.userExists(email);
+    }
+
+    /*
+     * ============================================================
+     * BUSCAR NOME DO USUÁRIO
+     * ============================================================
+     */
+
+    public String getName(String email) {
+
+        return userNames.get(email);
+    }
+
+    /*
+     * ============================================================
+     * ATUALIZAR SENHA
+     * ============================================================
+     */
+
+    public void updatePassword(
+            String email,
+            String novaSenha) {
+
+        /*
+         * Busca o usuário atual.
+         */
+        UserDetails usuarioAtual = userDetailsManager.loadUserByUsername(email);
+
+        /*
+         * Cria uma nova versão do usuário
+         * mantendo as permissões atuais.
+         */
+        UserDetails usuarioAtualizado = User.builder()
+                .username(
+                        usuarioAtual.getUsername())
+                .password(
+                        passwordEncoder.encode(novaSenha))
+                .authorities(
+                        usuarioAtual.getAuthorities())
+                .build();
+
+        /*
+         * Atualiza o usuário no armazenamento em memória.
+         */
+        userDetailsManager.updateUser(usuarioAtualizado);
     }
 }
